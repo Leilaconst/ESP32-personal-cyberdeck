@@ -1,0 +1,22 @@
+# Arduino IDE / build artifacts
+*.hex
+*.elf
+*.bin
+*.map
+build/
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Any future secrets file (SSIDs, tokens, API keys)
+Secrets.h
+Template.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor junk
+.vscode/
+.idea/
+*.swp
