@@ -14,15 +14,14 @@ class NotesApp {
     void begin(TFT_eSPI *tft);
     void draw();
 
-    // Feed every touch point here; internally routes it to either the
-    // back button or the keyboard.
+    // Feed every NEW touch point here; routes it to the keyboard.
     void handleTouch(uint16_t x, uint16_t y);
 
     // True if (x, y) is on the back button — checked by AppManager
     // BEFORE calling handleTouch(), so it can switch screens instead.
     bool hitBackButton(uint16_t x, uint16_t y) const;
 
-    // Redraws just the text area (call after any keyboard edit).
+    // Redraws just the text area, wrapping text onto multiple lines.
     void refreshTextArea();
 
   private:
@@ -31,6 +30,14 @@ class NotesApp {
 
     int16_t _backX = 0, _backY = 0, _backW = 60, _backH = 40;
     int16_t _textAreaY = 0, _textAreaH = 0;
+
+    // Text layout, computed in begin() from the screen size.
+    // Built-in font 1 is 6x8 px per character; at size 2 that's 12x16.
+    static const uint8_t CHAR_W = 12;        // pixel width of one character
+    static const uint8_t LINE_H = 18;        // line pitch (16 px glyph + 2 px gap)
+    static const uint8_t MAX_LINE_CHARS = 64; // size of the line buffer
+    uint8_t _charsPerLine = 1;
+    uint8_t _maxLines = 1;
 };
 
 #endif // NOTES_APP_H

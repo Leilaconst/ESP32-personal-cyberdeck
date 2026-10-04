@@ -19,13 +19,13 @@ struct KBKey {
   int16_t x, y, w, h;   // pixel rectangle, top-left + size
   KeyType type;
   char normalChar;      // character produced when shift is off (KEY_CHAR only)
-  char shiftChar;        // character produced when shift is on  (KEY_CHAR only)
+  char shiftChar;       // character produced when shift is on  (KEY_CHAR only)
 };
 
 // A reusable on-screen QWERTY keyboard. Call begin() once with a pointer
 // to an already-initialized TFT_eSPI instance, draw() to render it, and
-// handleTouch() every time tft.getTouch() reports a press. The typed
-// text accumulates in an internal buffer, readable via getText().
+// handleTouch() once per NEW press (AppManager does the edge detection).
+// The typed text accumulates in an internal buffer, readable via getText().
 class Keyboard {
   public:
     void begin(TFT_eSPI *tft);
@@ -33,8 +33,8 @@ class Keyboard {
     // Draws the full keyboard at the bottom of the screen.
     void draw();
 
-    // Feed this a raw touch point (screen coordinates). Returns true if
-    // the point landed on a key (so the caller knows something happened).
+    // Feed this a touch point (screen coordinates) once per new press.
+    // Returns true if the point landed on a key.
     bool handleTouch(uint16_t x, uint16_t y);
 
     // The text typed so far.
@@ -45,8 +45,8 @@ class Keyboard {
     // this class, refreshed).
     void clearText();
 
-    // True exactly once, the frame after ENTER is tapped; reading it
-    // clears the flag, so check it once per loop.
+    // True exactly once after ENTER is tapped; reading it clears the
+    // flag, so check it once per loop.
     bool enterPressed();
 
     // Where the keyboard starts vertically, so callers know how much
@@ -56,13 +56,12 @@ class Keyboard {
   private:
     TFT_eSPI *_tft = nullptr;
 
-    static const uint8_t MAX_KEYS = 40;
+    static const uint8_t MAX_KEYS = 48;   // layout needs 42
     KBKey _keys[MAX_KEYS];
     uint8_t _keyCount = 0;
 
     int16_t _kbTop = 0;
     bool _shiftActive = false;
-    bool _wasTouched = false;   // edge-detection so a held finger doesn't repeat
 
     char _buffer[KEYBOARD_MAX_LEN + 1] = {0};
     uint8_t _bufferLen = 0;

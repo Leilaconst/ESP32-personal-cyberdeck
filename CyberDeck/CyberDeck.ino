@@ -11,6 +11,7 @@
 
 TFT_eSPI tft = TFT_eSPI();
 AppManager appManager;
+Keyboard keyboard;
 
 void setup() {
   Serial.begin(115200);
@@ -19,12 +20,10 @@ void setup() {
   tft.setRotation(SCREEN_ROTATION);
   tft.fillScreen(TFT_BLACK);
 
-  // Applies the calibration numbers from Config.h. If you haven't run
-  // TFT_eSPI's Touch_calibrate example yet, touch coordinates will be
-  // inaccurate until you do — see README.md.
-  tft.setTouch(calData);
+  touch_calibrate(tft);
 
   appManager.begin(&tft);
+  //keyboard.begin(&tft);
 }
 
 void loop() {

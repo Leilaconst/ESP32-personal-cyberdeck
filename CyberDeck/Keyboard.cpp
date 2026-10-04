@@ -16,14 +16,12 @@ void Keyboard::begin(TFT_eSPI *tft) {
 // ---------------------------------------------------------------------
 // Layout
 // ---------------------------------------------------------------------
-// Builds a classic QWERTY grid sized to whatever the display's actual
-// width/height are (via _tft->width()/height()), so this works whether
-// the panel is 320x480, 480x320 after a setRotation(), etc.
+// Builds a classic QWERTY grid sized to the display's actual width/height.
 //
 // Row layout (10 "columns" wide, colW = screen width / 10):
 //   Row 0: 1 2 3 4 5 6 7 8 9 0                (10 keys, 1 col each)
 //   Row 1: q w e r t y u i o p                (10 keys, 1 col each)
-//   Row 2:  a s d f g h j k l                 (9 keys, 1 col each, offset by half a col to center)
+//   Row 2:  a s d f g h j k l                 (9 keys, offset half a col to center)
 //   Row 3: [SHIFT 1.5] z x c v b n m [BKSP 1.5]
 //   Row 4: [,] [SPACE x6] [.] [ENTER x2]
 void Keyboard::buildLayout() {
@@ -40,7 +38,7 @@ void Keyboard::buildLayout() {
   const char *row2 = "asdfghjkl";
   const char *row3 = "zxcvbnm";
 
-  // Row 0: numbers. Shift doesn't change these (shiftChar == normalChar).
+  // Row 0: numbers. Shift doesn't change these.
   for (uint8_t i = 0; i < 10; i++) {
     addCharKey(row0[i], row0[i], i * colW, _kbTop + 0 * rowH, colW, rowH);
   }
@@ -51,7 +49,7 @@ void Keyboard::buildLayout() {
     addCharKey(c, toupper(c), i * colW, _kbTop + 1 * rowH, colW, rowH);
   }
 
-  // Row 2: asdfghjkl, centered with a half-column offset (9 keys)
+  // Row 2: asdfghjkl, centered with a half-column offset
   for (uint8_t i = 0; i < 9; i++) {
     char c = row2[i];
     addCharKey(c, toupper(c), colW * 0.5f + i * colW, _kbTop + 2 * rowH, colW, rowH);
@@ -80,7 +78,7 @@ void Keyboard::buildLayout() {
 }
 
 void Keyboard::addCharKey(char lower, char upper, float x, float y, float w, float h) {
-  if (_keyCount >= MAX_KEYS) return;  // layout should never exceed this, but stay safe
+  if (_keyCount >= MAX_KEYS) return;
   KBKey &k = _keys[_keyCount++];
   k.x = (int16_t)round(x);
   k.y = (int16_t)round(y);
@@ -144,22 +142,19 @@ void Keyboard::draw() {
 // ---------------------------------------------------------------------
 // Touch handling
 // ---------------------------------------------------------------------
+// Called by NotesApp once per NEW press: AppManager::update() already
+// filters out held-finger frames, so no edge detection is needed here.
 bool Keyboard::handleTouch(uint16_t x, uint16_t y) {
-  // Edge-detect: only act the moment a touch begins, so holding a
-  // finger down doesn't spam the same character every loop iteration.
-  // Callers are expected to pass touched==false via a separate call
-  // pattern (see NotesApp) — here we just track "was there a hit last
-  // time this was called with a valid point."
   bool hit = false;
 
   for (uint8_t i = 0; i < _keyCount; i++) {
     KBKey &k = _keys[i];
-    if (x < k.x || x > k.x + k.w || y < k.y || y > k.y + k.h) continue;
+    // Half-open rectangle: neighbouring keys don't overlap by a pixel.
+    if (x < k.x || x >= k.x + k.w || y < k.y || y >= k.y + k.h) continue;
 
     hit = true;
 
     // Quick visual feedback: flash the key, then restore it.
-    uint16_t savedFill = (k.type == KEY_CHAR) ? KEY_FILL : KEY_FILL_HOT;
     _tft->fillRoundRect(k.x + 2, k.y + 2, k.w - 4, k.h - 4, 6, KEY_PRESSED);
     delay(60);
     drawKey(k); // restores normal fill + label
