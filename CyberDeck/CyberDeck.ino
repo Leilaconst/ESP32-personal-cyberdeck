@@ -23,7 +23,6 @@ void setup() {
   touch_calibrate(tft);
 
   appManager.begin(&tft);
-  //keyboard.begin(&tft);
 }
 
 void loop() {
